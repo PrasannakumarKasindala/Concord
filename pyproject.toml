@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "concord"
-version = "0.1.0"
+version = "0.2.0"
 description = "A transactional outbox relay that keeps a database and an event stream in agreement."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,6 +14,12 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=7"]
+prod = [
+    "psycopg[binary]>=3.1",
+    "confluent-kafka>=2.3",
+    "redis>=5.0",
+    "minio>=7.2",
+]
 
 [tool.setuptools]
-packages = ["concord"]
+packages = ["concord", "concord.adapters"]
