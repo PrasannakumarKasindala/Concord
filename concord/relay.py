@@ -15,7 +15,9 @@ One tick of the relay:
 
 Delivery is at-least-once by construction: we publish *before* we mark published,
 so a crash between the two re-delivers rather than loses. The consumer-side
-DedupeCache is what upgrades at-least-once to effectively-once.
+DedupeCache is what upgrades at-least-once to effectively-once. We never claim
+exactly-once end to end, because across two systems without a shared transaction
+that is a marketing word, not an engineering one.
 """
 
 from __future__ import annotations
@@ -26,7 +28,7 @@ from .backoff import next_delay
 from .config import Config
 from .logging_ import get_logger
 from .metrics import Metrics
-from .model import OutboxRecord, Status
+from .model import OutboxRecord
 from .ports import Broker, DeadLetterArchive, DedupeCache, OutboxStore
 
 log = get_logger("concord.relay")
@@ -58,8 +60,9 @@ class Relay:
         return len(batch)
 
     def _handle(self, record: OutboxRecord) -> None:
-        # Consumer-side idempotency guard. If a duplicate somehow reaches us,
-        # drop it cheaply.
+        # Consumer-side idempotency guard. If we already confirmed a publish for
+        # this key (e.g. a crash re-delivered it), drop it cheaply. We check here
+        # and only record AFTER a successful publish below, never before.
         if self.dedupe is not None and self.dedupe.seen_before(record.dedupe_key()):
             self.store.mark_published(record.id)
             self.metrics.record_duplicate()
@@ -74,6 +77,9 @@ class Relay:
             self._on_failure(record, exc)
             return
 
+        # Publish confirmed: NOW it is safe to record the dedupe key.
+        if self.dedupe is not None:
+            self.dedupe.mark_seen(record.dedupe_key())
         self.store.mark_published(record.id)
         latency_ms = (time.perf_counter() - started) * 1000.0
         self.metrics.record_publish(latency_ms)

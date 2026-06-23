@@ -8,7 +8,8 @@ import time
 
 from concord.backoff import next_delay
 from concord.config import Config
-from concord.memory import FlakyBroker, MemoryArchive, MemoryBroker, MemoryStore
+from concord.memory import (FlakyBroker, MemoryArchive, MemoryBroker,
+                            MemoryDedupe, MemoryStore)
 from concord.model import OutboxRecord
 from concord.relay import Relay
 
@@ -19,6 +20,40 @@ def make_relay(broker, **overrides):
     store = MemoryStore()
     relay = Relay(store, broker, MemoryArchive(), cfg)
     return relay, store
+
+
+def test_duplicate_is_dropped_by_dedupe():
+    """
+    If a record is re-delivered (publish succeeded but the relay crashed before
+    marking it done, so it gets claimed again), the consumer-side dedupe guard
+    stops it from hitting the stream twice.
+
+    Regression test for a real bug: an earlier version recorded the dedupe key
+    on `seen_before` itself, before the publish was confirmed. That meant a
+    FAILED publish's retry was also treated as "already seen" and silently
+    marked done without ever reaching the broker -- the demo's own metrics gave
+    it away (retries == duplicates_dropped on every run). Fixed by splitting
+    the port into `seen_before` (pure check) and `mark_seen` (called only after
+    a confirmed publish).
+    """
+    broker = MemoryBroker()
+    dedupe = MemoryDedupe()
+    cfg = Config(log_level="ERROR")
+    store = MemoryStore()
+    relay = Relay(store, broker, MemoryArchive(), cfg, dedupe=dedupe)
+
+    rec = OutboxRecord(aggregate="order", payload=b"once")
+    store.enqueue(rec)
+    relay.tick()
+    assert len(broker.messages) == 1
+
+    # Simulate a crash between publish and ack: the row is back to PENDING and
+    # gets re-claimed on the next tick, even though it already reached the stream.
+    store.mark_retry(rec.id, attempts=0, next_attempt_at=time.time(), error="crash")
+    relay.tick()
+
+    assert len(broker.messages) == 1          # not published a second time
+    assert relay.metrics.duplicates_dropped == 1
 
 
 def test_happy_path_publishes_and_marks_done():

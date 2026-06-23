@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "concord"
-version = "0.2.1"
+version = "0.2.2"
 description = "A transactional outbox relay that keeps a database and an event stream in agreement."
 readme = "README.md"
 requires-python = ">=3.10"

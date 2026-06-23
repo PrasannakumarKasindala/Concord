@@ -125,7 +125,7 @@ class FlakyBroker(Broker):
 
 
 class MemoryDedupe(DedupeCache):
-    """Consumer-side idempotency, standing in for Redis SETNX."""
+    """Consumer-side idempotency, standing in for Redis GET + SET EX."""
 
     def __init__(self) -> None:
         self._seen: set[str] = set()
@@ -133,10 +133,11 @@ class MemoryDedupe(DedupeCache):
 
     def seen_before(self, dedupe_key: str) -> bool:
         with self._lock:
-            if dedupe_key in self._seen:
-                return True
+            return dedupe_key in self._seen
+
+    def mark_seen(self, dedupe_key: str) -> None:
+        with self._lock:
             self._seen.add(dedupe_key)
-            return False
 
 
 class MemoryArchive(DeadLetterArchive):

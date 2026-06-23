@@ -53,10 +53,19 @@ class Broker(Protocol):
 
 @runtime_checkable
 class DedupeCache(Protocol):
-    """Consumer-side idempotency (Redis in prod)."""
+    """
+    Consumer-side idempotency (Redis in prod). Two methods on purpose:
+    `seen_before` is a pure read, and `mark_seen` is called only AFTER a publish
+    is confirmed. Recording the key before confirming would let a failed publish
+    masquerade as done on its retry, which is silent data loss. Ask me how I found
+    that out (the demo did, on the first run).
+    """
 
     def seen_before(self, dedupe_key: str) -> bool:
-        """Return True if this key was already processed; record it if not."""
+        """Pure check. True if this key was already successfully published."""
+
+    def mark_seen(self, dedupe_key: str) -> None:
+        """Record that this key was successfully published. Called post-publish."""
 
 
 @runtime_checkable

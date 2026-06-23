@@ -5,8 +5,9 @@ and should process the record; if falsy, someone already did and this is a
 duplicate to drop.
 
 The TTL matters: dedupe keys are not kept forever, they are kept long enough to
-cover the retry window. Default 24h comfortably exceeds the maximum backoff
-schedule.
+cover the retry window. A key that outlives any possible in-flight retry is just
+memory you are renting for no reason. Default 24h comfortably exceeds the maximum
+backoff schedule.
 """
 
 from __future__ import annotations
@@ -21,10 +22,12 @@ class RedisDedupe(DedupeCache):
         self._ttl = ttl_seconds
 
     def seen_before(self, dedupe_key: str) -> bool:
-        # returns True if the key already existed (i.e. we did NOT set it now)
-        was_set = self._r.set(name=f"cc:dedupe:{dedupe_key}", value=1,
-                              nx=True, ex=self._ttl)
-        return not bool(was_set)
+        return bool(self._r.exists(f"cc:dedupe:{dedupe_key}"))
+
+    def mark_seen(self, dedupe_key: str) -> None:
+        # Recorded only after a confirmed publish. TTL covers the retry window;
+        # keeping keys longer than any possible in-flight retry is rented memory.
+        self._r.set(name=f"cc:dedupe:{dedupe_key}", value=1, ex=self._ttl)
 
 
 def _import_redis():

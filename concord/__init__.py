@@ -8,5 +8,5 @@ tests and the benchmark implement the same interfaces, so the code path under
 load is the code path in production.
 """
 
-__version__ = "0.2.1"
+__version__ = "0.2.2"
 __all__ = ["__version__"]
