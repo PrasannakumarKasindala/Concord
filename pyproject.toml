@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "concord"
-version = "0.2.2"
+version = "0.2.3"
 description = "A transactional outbox relay that keeps a database and an event stream in agreement."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,7 +13,7 @@ authors = [{ name = "Prasannakumar Kasindala" }]
 dependencies = []
 
 [project.optional-dependencies]
-dev = ["pytest>=7"]
+dev = ["pytest>=7", "pytest-cov>=4", "ruff>=0.4"]
 prod = [
     "psycopg[binary]>=3.1",
     "confluent-kafka>=2.3",
