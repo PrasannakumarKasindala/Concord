@@ -1,0 +1,50 @@
+[
+  {
+    "offered_rps": 500,
+    "achieved_rps": 499.7,
+    "p50": 1.03,
+    "p95": 2.83,
+    "p99": 32.39,
+    "published": 1000
+  },
+  {
+    "offered_rps": 1000,
+    "achieved_rps": 974.1,
+    "p50": 1.13,
+    "p95": 2.7,
+    "p99": 32.93,
+    "published": 2000
+  },
+  {
+    "offered_rps": 2000,
+    "achieved_rps": 1985.8,
+    "p50": 1.33,
+    "p95": 7.01,
+    "p99": 37.41,
+    "published": 4000
+  },
+  {
+    "offered_rps": 4000,
+    "achieved_rps": 3813.3,
+    "p50": 3.32,
+    "p95": 16.23,
+    "p99": 41.77,
+    "published": 8000
+  },
+  {
+    "offered_rps": 6000,
+    "achieved_rps": 5513.3,
+    "p50": 20.85,
+    "p95": 75.87,
+    "p99": 125.66,
+    "published": 12000
+  },
+  {
+    "offered_rps": 8000,
+    "achieved_rps": 5168.1,
+    "p50": 304.97,
+    "p95": 807.95,
+    "p99": 1167.43,
+    "published": 16000
+  }
+]
