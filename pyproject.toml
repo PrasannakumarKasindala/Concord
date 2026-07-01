@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "concord"
-version = "0.2.4"
+version = "0.2.5"
 description = "A transactional outbox relay that keeps a database and an event stream in agreement."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -26,3 +26,21 @@ concord = "concord.cli:main"
 
 [tool.setuptools]
 packages = ["concord", "concord.adapters"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+# Adapters and the CLI's `relay` command require live Postgres/Kafka/Redis/MinIO
+# and are covered by integration tests run against docker-compose, not here.
+# Coverage below is measured on the infra-independent core, where it belongs.
+omit = [
+    "concord/adapters/*",
+    "concord/cli.py",
+    "benchmark/*",
+]
