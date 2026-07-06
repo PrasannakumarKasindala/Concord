@@ -35,7 +35,7 @@ losses** across all load levels, degrading gracefully into a growing backlog
 (never data loss) only once offered load exceeded drain capacity. The full method
 and chart are in [Performance under load](#performance-under-load).
 
-## What this solves (the 10-second version)
+## What this solves 
 
 - **No more silent data loss between your DB and Kafka.** The business row and its
   event commit atomically; a crash can delay or duplicate delivery but never drop it.
@@ -61,7 +61,7 @@ flowchart LR
 Detail, ports, and the precise delivery guarantee live in
 [docs/architecture.md](docs/architecture.md).
 
-## Tech stack (and why each was chosen for *this* project)
+## Tech stack (and why each was chosen for this project)
 
 | Technology | Role here | Why this one |
 |------------|-----------|--------------|
@@ -73,7 +73,7 @@ Detail, ports, and the precise delivery guarantee live in
 | **Polling, not CDC** | Change detection | Lower operational risk than replication slots, portable, and testable in-memory. See [ADR 0001](docs/adr/0001-polling-vs-logical-replication.md). |
 | **Python stdlib core (zero runtime deps)** | The relay logic | The core has no third-party imports, so it runs anywhere and the guarantees are testable without infra. Drivers are opt-in via `concord[prod]`. |
 
-## Developer onboarding (2 minutes, no hand-holding)
+## Developer onboarding 
 
 ```bash
 # core only, no infra, proves the guarantees immediately
